@@ -2,10 +2,12 @@ package com.example.todolist.util;
 
 import com.example.todolist.exception.error.AuthException;
 import com.example.todolist.model.User;
+import com.example.todolist.repository.RedisRepo;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +23,13 @@ public class JwtUtil {
     private String secret = "Mask Spring-Boot";
     public final long expDay = 7;
     private String issuer = "http://com.example.todolist";
+
+    private RedisRepo redisRepo;
+
+    @Autowired
+    public JwtUtil(RedisRepo redisRepo) {
+        this.redisRepo = redisRepo;
+    }
 
     /**
      * 產生 Token
@@ -60,7 +69,7 @@ public class JwtUtil {
 
             isExpired(token);
 
-            // isExistInRedis(token);
+            isExistInRedis(token);
             return true;
         } catch (Exception e) {
             throw new AuthException().AuthFail(e);
@@ -117,18 +126,18 @@ public class JwtUtil {
     /**
      * 檢查Token是否有在Redis中
      */
-//    public void isExistInRedis(String token) throws Exception {
-//        // 取出token中的使用者編號
-//        Long id = extractID(token);
-//
-//        // 查詢redis
-//        String tokenInRedis = redisRepo.get(id.toString());
-//
-//        // 比對token是否相同
-//        if (!tokenInRedis.equals(token)) {
-//            throw new IllegalAccessException("權杖失效");
-//        }
-//
-//    }
+    public void isExistInRedis(String token) throws Exception {
+        // 取出token中的使用者編號
+        Long id = extractID(token);
+
+        // 查詢redis
+        String tokenInRedis = redisRepo.get(id.toString());
+
+        // 比對token是否相同
+        if (!tokenInRedis.equals(token)) {
+            throw new IllegalAccessException("權杖失效");
+        }
+
+    }
 
 }
